@@ -32,5 +32,28 @@ Jika diperlukan hasil diprediksi dan confidence interval akan diplotting. Yang d
 ### Contoh
 ![Contoh](contoh.png)
 
+# How to Run
+## Install venv:
 
+```bash 
+sudo pip3 install virtualenv
+```
+##
 
+## create venv with python=3.8:
+
+```bash
+virtualenv -p /usr/bin/python3.11 venv
+```
+##
+## active your virtual environment:
+
+```bash
+source venv/bin/activate
+```
+##
+## install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
