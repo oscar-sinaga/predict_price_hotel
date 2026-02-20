@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 from pmdarima import auto_arima
@@ -195,3 +194,4 @@ class PriceForecast:
         plt.ylabel('price')
         plt.title(f'SARIMA Forecasting {self.df["hotel_name"].iloc[0]} {self.df["room_name"].iloc[0]} ')
         plt.show()
+
