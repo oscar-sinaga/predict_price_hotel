@@ -1,25 +1,15 @@
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/oscar-sinaga/predict_price_hotel/blob/main/experiments.ipynb)
+## Price Forecast Models
 
-# Latar Belakang
+### PriceForecastRevamped Class
+The `PriceForecastRevamped` class implements a Random Forest model for forecasting hotel prices. This model improves prediction accuracy and is trained using historical price data, providing a robust alternative to traditional forecasting techniques.
 
-Model Peramalan Harga ini bertujuan untuk memprediksi harga sewa kamar hotel di masa depan berdasarkan data historis harga. Model ini menggunakan algoritma Seasonal AutoRegressive Integrated Moving Average (SARIMA). SARIMA adalah metode peramalan time series yang memperhitungkan baik musiman maupun tren dalam data. model ini menggunakan fungsi `auto_arima` dari libary `pmdarima`. Fungsi ini memiliki cara kerja yang mirip seperti  `GridSearch` yang ada di library `skicit-learn`, karena mencoba berbagai set parameter p dan q (juga P dan Q untuk model musiman), memilih model yang meminimalkan AIC (atau BIC, atau kriteria informasi lain). Selain itu, auto_arima juga menggunakan uji stationeritas (seperti uji augmented Dickey-Fuller) dan seasonal (seperti uji Canova-Hansen) untuk model seasonal. Model ini akan melatih data harga harian sewa kamar hotel.Sebelum data *time series* harga dimodelkan, perlu dicek terlebih dahulu apakah ada hari yang harganya kosong atau loncat-loncat jadi rentang 2 hari, 3 hari. Misalnya data harga sewa hotel itu tanggal 1,2,3 ada namun tanggal 4 tidak ada, jadi langsung loncat ke tanggal 5. Jika terjadi hal demikian maka datanya perlu diimputasi dengan menggunakan linear interpolasi. 
+### PriceForecast Class
+The `PriceForecast` class has been refactored to enhance performance and readability. This class utilizes the SARIMA model, which is adept at handling time series data, and has been optimized based on insights from recent analyses.
 
-# Algoritma
-Berikut ini algoritma atau step by step dalam melakukan prediksi harga sewa hotel.   
-1. **Inisialisasi data**  
-dalam format terstruktur yang mencakup tanggal, harga, nama hotel, nama kamar, dan nama OTA (Online Travel Agency). Data disusun dalam DataFrame Pandas untuk memudahkan manipulasi.
-2. **Membaca Data**  
-Untuk fokus pada skenario tertentu, yaitu pemilihan data untuk hotel, kamar, dan OTA tertentu. DataFrame difilter berdasarkan kriteria yang diberikan.
-3. **Imputasi data**  
-Untuk menangani nilai yang hilang. Metode ini menggunakan interpolasi linear untuk mengisi nilai yang hilang. Jika terdapat rentang lebih dari 1 hari antara dua titik data, model melakukan interpolasi linear untuk mengisi nilai di antara keduanya. 
-4. **Pelatihan Model**
-Setelah data *time series* harga sewa kamar hotel sudah diimputasi, selanjutnya dilakukan pelatihan dengan model `SARIMAX` yang dioptimasi dengan menggunakan fungsi `auto_arima` untuk mencari parameter optimalnya secara otomatis. Kemudian  dengan menggunakan `confidence interval`, rentang nilai yang mungkin dari setiap prediksi juga ditentukan. 
-    ```py
-    # Find the best SARIMA model using pmdarima
-    best_sarima = auto_arima(train['price'], seasonal=True, m=7, stepwise=True, trace=True)
-    p, d, q = best_sarima.order
-    P, D, Q, s = best_sarima.seasonal_order
+The models aim to provide accurate price predictions for hotels based on various factors, ensuring that users can make informed decisions when setting prices.
 
-    # Initialize and fit the SARIMAX model
-    model = SARIMAX(train['price'], order=(p, d, q), seasonal_order=(P, D, Q, s))
-    ```
+## Models Overview
+- **Random Forest Model**: Uses ensemble learning for more accurate predictions.
+- **Refactored SARIMA Model**: Optimized for time series forecasting tasks.
+
+These models are part of our ongoing effort to leverage machine learning for better pricing strategies and operational efficiency.
