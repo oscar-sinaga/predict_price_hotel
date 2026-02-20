@@ -1,3 +1,5 @@
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/oscar-sinaga/predict_price_hotel/blob/main/experiments.ipynb)
+
 # Latar Belakang
 
 Model Peramalan Harga ini bertujuan untuk memprediksi harga sewa kamar hotel di masa depan berdasarkan data historis harga. Model ini menggunakan algoritma Seasonal AutoRegressive Integrated Moving Average (SARIMA). SARIMA adalah metode peramalan time series yang memperhitungkan baik musiman maupun tren dalam data. model ini menggunakan fungsi `auto_arima` dari libary `pmdarima`. Fungsi ini memiliki cara kerja yang mirip seperti  `GridSearch` yang ada di library `skicit-learn`, karena mencoba berbagai set parameter p dan q (juga P dan Q untuk model musiman), memilih model yang meminimalkan AIC (atau BIC, atau kriteria informasi lain). Selain itu, auto_arima juga menggunakan uji stationeritas (seperti uji augmented Dickey-Fuller) dan seasonal (seperti uji Canova-Hansen) untuk model seasonal. Model ini akan melatih data harga harian sewa kamar hotel.Sebelum data *time series* harga dimodelkan, perlu dicek terlebih dahulu apakah ada hari yang harganya kosong atau loncat-loncat jadi rentang 2 hari, 3 hari. Misalnya data harga sewa hotel itu tanggal 1,2,3 ada namun tanggal 4 tidak ada, jadi langsung loncat ke tanggal 5. Jika terjadi hal demikian maka datanya perlu diimputasi dengan menggunakan linear interpolasi. 
@@ -20,40 +22,4 @@ Setelah data *time series* harga sewa kamar hotel sudah diimputasi, selanjutnya 
 
     # Initialize and fit the SARIMAX model
     model = SARIMAX(train['price'], order=(p, d, q), seasonal_order=(P, D, Q, s))
-    model_fit = model.fit()
     ```
-    Model memilih 90 hari terakhir dari data yang telah diimputasi untuk pelatihan.
-5. **Peramalan(Forecasting)**  
-Model yang sudah dilatih kemudian digunakan untuk meramalkan atau forecasting harga sewa hotel kedepannya. Kita bisa memilih seberapa jauh harga di masa depan yang kita ingin meramalkan. Semakin jauh tanggal di masa depan, maka model semakin tidak akurat. Di sini kita menggunakan  default nya adalah 14 hari di masa depan. Selain itu disini kita menggunakan *Confidence interval* untuk mencari nilai tertinggi dan nilai terendah yang mungkin dari setiap prediksi. Nantinya dari situ kita bisa mengetahui rentang prediksinya.
-
-6. **Visualisiasi hasil prediksi**
-Jika diperlukan hasil diprediksi dan confidence interval akan diplotting. Yang diplotting  mencakup 5 hari terakhir data latih, peramalan SARIMA, dan area berbayang yang mewakili *confidence interval*. Visualisasi ini membantu memahami akurasi dan ketidakpastian dari prediksi harga.
-
-### Contoh
-![Contoh](contoh.png)
-
-# How to Run
-## Install venv:
-
-```bash 
-sudo pip3 install virtualenv
-```
-##
-
-## create venv with python=3.8:
-
-```bash
-virtualenv -p /usr/bin/python3.11 venv
-```
-##
-## active your virtual environment:
-
-```bash
-source venv/bin/activate
-```
-##
-## install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
