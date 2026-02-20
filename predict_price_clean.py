@@ -6,6 +6,7 @@ from pmdarima import auto_arima
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib.pyplot as plt
 from datetime import timedelta
+from sklearn.model_selection import train_test_split
 
 class PriceForecast:
 
@@ -193,5 +194,95 @@ class PriceForecast:
         plt.xlabel('date')
         plt.ylabel('price')
         plt.title(f'SARIMA Forecasting {self.df["hotel_name"].iloc[0]} {self.df["room_name"].iloc[0]} ')
+        plt.show()
+
+    def evaluate_model(self, days_pred=14):
+        """
+        Melakukan evaluasi train dan test, serta menghitung MAPE tiap window prediksi.
+        """
+
+        df_interpolated = self.imputation()
+
+        # Memisahkan data train dan test secara acak (random split)
+        train, test = train_test_split(df_interpolated, test_size=days_pred, random_state=42)
+
+        # Mengurutkan kembali berdasarkan tanggal untuk visualisasi time-series
+        train = train.sort_values(by='date').reset_index(drop=True)
+        test = test.sort_values(by='date').reset_index(drop=True)
+
+        # Mengambil 90 data terakhir dari train untuk mempercepat training
+        train_subset = train[-90:].copy()
+        train_subset['price'] = pd.to_numeric(train_subset['price'])
+        test['price'] = pd.to_numeric(test['price'])
+
+        # Mencari model SARIMA terbaik
+        best_sarima = auto_arima(train_subset['price'], seasonal=True, m=7, stepwise=True, trace=False)
+        p, d, q = best_sarima.order
+        P, D, Q, s = best_sarima.seasonal_order
+
+        # Fit model dan prediksi sejumlah test data
+        model = SARIMAX(train_subset['price'], order=(p, d, q), seasonal_order=(P, D, Q, s))
+        model_fit = model.fit(disp=False)
+        forecast = model_fit.forecast(steps=len(test))
+
+        # Menyimpan hasil untuk plotting
+        self.eval_train = train_subset
+        self.eval_test = test
+        self.eval_forecast = forecast
+
+        # Menghitung MAPE untuk tiap window prediction (1 hari, 2 hari, dst)
+        mape_list = []
+        for i in range(len(test)):
+            y_true_val = test['price'].iloc[i]
+            y_pred_val = forecast.iloc[i]
+            
+            # Menghitung absolute percentage error per hari
+            mape = np.abs((y_true_val - y_pred_val) / y_true_val) if y_true_val != 0 else 0
+            mape_list.append(mape)
+
+        self.mape_list = mape_list
+        
+        # Membuat DataFrame untuk melihat hasil evaluasi dengan mudah
+        df_eval = pd.DataFrame({
+            'window_hari': range(1, len(test) + 1),
+            'date': test['date'].values,
+            'actual_price': test['price'].values,
+            'forecast_price': forecast.values,
+            'mape': mape_list
+        })
+        
+        return df_eval
+
+    def plot_evaluation(self):
+        """
+        Plot grafik Train vs Test dan MAPE tiap window prediksi.
+        """
+        train = self.eval_train
+        test = self.eval_test
+        forecast = self.eval_forecast
+        mape_list = self.mape_list
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
+
+        # Plot 1: Train vs Test vs Forecast
+        ax1.plot(train['date'], train['price'], label='Train Data', color='blue', alpha=0.6)
+        ax1.plot(test['date'], test['price'], label='Actual Test Data', color='green', marker='o')
+        ax1.plot(test['date'], forecast, label='Forecast', color='red', linestyle='--', marker='x')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Price')
+        ax1.set_title(f'Train vs Test vs Forecast\n{self.df["hotel_name"].iloc[0]}')
+        ax1.legend()
+        ax1.tick_params(axis='x', rotation=45)
+
+        # Plot 2: MAPE per Window Prediction
+        windows = range(1, len(mape_list) + 1)
+        ax2.plot(windows, mape_list, marker='o', color='purple')
+        ax2.set_xlabel('Window Prediction (Hari ke-)')
+        ax2.set_ylabel('MAPE')
+        ax2.set_title('MAPE tiap Window Prediction')
+        ax2.set_xticks(windows)
+        ax2.grid(True, linestyle='--', alpha=0.6)
+
+        plt.tight_layout()
         plt.show()
 
